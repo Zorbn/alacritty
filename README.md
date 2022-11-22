@@ -1,3 +1,19 @@
+# This fork
+This fork uses a custom fork of crossfont to support bitmap fonts loaded via images.
+These changes are present on the bitmap-image-fonts branch. On that branch there
+are a few examples of fonts made to be loaded by this fork in the `extra/example_bitmaps`
+directory. The first glyph of the font represents the dimensions of the font, as well as the
+amount of padding and the position of underlines and strikethroughs as colored fields.
+
+Here is an example of using the fork to load a bitmap font:
+```
+font:
+  size: 14.0 # The size chosen doesn't matter, the bitmap fonts used only have one size.
+  normal: # The same can be done for bold, italic, etc.
+    family: 'C:/Users/Nic/Desktop/alacritty/extra/example_bitmaps/fixedsys.png'
+  use_bitmap: true
+```
+
 <p align="center">
     <img width="200" alt="Alacritty Logo" src="https://raw.githubusercontent.com/alacritty/alacritty/master/extra/logo/compat/alacritty-term%2Bscanlines.png">
 </p>
