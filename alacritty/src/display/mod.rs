@@ -6,6 +6,7 @@ use std::fmt::{self, Formatter};
 use std::mem::{self, ManuallyDrop};
 use std::num::NonZeroU32;
 use std::ops::{Deref, DerefMut};
+use std::path::Path;
 #[cfg(all(feature = "wayland", not(any(target_os = "macos", windows))))]
 use std::sync::atomic::Ordering;
 
@@ -20,7 +21,7 @@ use winit::dpi::PhysicalSize;
 use winit::event::ModifiersState;
 use winit::window::CursorIcon;
 
-use crossfont::{self, Rasterize, Rasterizer};
+use crossfont::{self, Rasterize, Rasterizer, bitmap::BitmapRasterizer};
 use unicode_width::UnicodeWidthChar;
 
 use alacritty_terminal::ansi::{CursorShape, NamedColor};
@@ -395,7 +396,12 @@ impl Display {
         let is_wayland = window.wayland_surface().is_some();
 
         let scale_factor = window.scale_factor as f32;
-        let rasterizer = Rasterizer::new(scale_factor)?;
+        let font_is_file = Path::new(&config.font.normal().family).exists();
+        let rasterizer: Box<dyn Rasterize> = if config.font.use_bitmap && font_is_file {
+            Box::new(BitmapRasterizer::new(scale_factor)?)
+        } else {
+            Box::new(Rasterizer::new(scale_factor)?)
+        };
 
         debug!("Loading \"{}\" font", &config.font.normal().family);
         let mut glyph_cache = GlyphCache::new(rasterizer, &config.font)?;

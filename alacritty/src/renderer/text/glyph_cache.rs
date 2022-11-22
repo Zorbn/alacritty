@@ -2,8 +2,7 @@ use std::collections::HashMap;
 use std::hash::BuildHasherDefault;
 
 use crossfont::{
-    Error as RasterizerError, FontDesc, FontKey, GlyphKey, Metrics, Rasterize, RasterizedGlyph,
-    Rasterizer, Size, Slant, Style, Weight,
+    Error as RasterizerError, FontDesc, FontKey, GlyphKey, Metrics, Rasterize, RasterizedGlyph, Size, Slant, Style, Weight,
 };
 use fnv::FnvHasher;
 use log::{error, info};
@@ -49,7 +48,7 @@ pub struct GlyphCache {
     cache: HashMap<GlyphKey, Glyph, BuildHasherDefault<FnvHasher>>,
 
     /// Rasterizer for loading new glyphs.
-    rasterizer: Rasterizer,
+    rasterizer: Box<dyn Rasterize>,
 
     /// Regular font.
     pub font_key: FontKey,
@@ -80,7 +79,7 @@ pub struct GlyphCache {
 }
 
 impl GlyphCache {
-    pub fn new(mut rasterizer: Rasterizer, font: &Font) -> Result<GlyphCache, crossfont::Error> {
+    pub fn new(mut rasterizer: Box<dyn Rasterize>, font: &Font) -> Result<GlyphCache, crossfont::Error> {
         let (regular, bold, italic, bold_italic) = Self::compute_font_keys(font, &mut rasterizer)?;
 
         // Need to load at least one glyph for the face before calling metrics.
@@ -117,7 +116,7 @@ impl GlyphCache {
     /// Computes font keys for (Regular, Bold, Italic, Bold Italic).
     fn compute_font_keys(
         font: &Font,
-        rasterizer: &mut Rasterizer,
+        rasterizer: &mut Box<dyn Rasterize>,
     ) -> Result<(FontKey, FontKey, FontKey, FontKey), crossfont::Error> {
         let size = font.size();
 
@@ -154,7 +153,7 @@ impl GlyphCache {
     }
 
     fn load_regular_font(
-        rasterizer: &mut Rasterizer,
+        rasterizer: &mut Box<dyn Rasterize>,
         description: &FontDesc,
         size: Size,
     ) -> Result<FontKey, crossfont::Error> {
